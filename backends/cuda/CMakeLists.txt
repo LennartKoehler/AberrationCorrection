@@ -27,5 +27,6 @@ target_link_libraries(aberration_cuda_backend
     PUBLIC
         cuda_backend
         dolphinbackend
+        aberration_backend
         aberration_cuda_kernels
 )
