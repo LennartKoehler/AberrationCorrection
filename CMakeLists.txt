@@ -25,5 +25,7 @@ target_link_libraries(AberrationCorrection
         dolphin_image
         dolphinbackend
         aberration_cuda_backend
-        project_options # make own project options
+        project_options
 )
+
+add_subdirectory(tests)
