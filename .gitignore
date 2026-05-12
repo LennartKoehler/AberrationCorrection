@@ -1,0 +1,13 @@
+.vscode/*
+.cache/*
+.roo/*
+.VSCodeCounter/*
+**/build/
+**/dockerbuild/
+build/*
+*build*/
+profiling/results/*
+cmake-build-debug/*
+configs/
+
+
