@@ -1,7 +1,6 @@
 #include "dolphin_image/Image3D.h"
 #include "dolphin_image/IO/TiffReader.h"
 #include "dolphin_image/IO/TiffWriter.h"
-#include "aberration_cuda/CUDAAberrationBackend.h"
 #include <iostream>
 #include <string>
 
@@ -11,7 +10,6 @@ int main(int argc, char** argv){
         return 1;
     }
 
-    CUDAAberrationBackend test{};
     std::string input = argv[1];
     std::string output;
     if(argc >= 3){

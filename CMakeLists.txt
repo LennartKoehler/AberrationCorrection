@@ -16,6 +16,7 @@ set(BUILD_DOLPHIN_LIBRARY OFF CACHE BOOL "" FORCE)
 set(ENABLE_TESTS OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(lib/dolphin)
+add_subdirectory(backends/aberration_backend)
 add_subdirectory(backends/cuda)
 
 add_executable(AberrationCorrection src/main.cpp)
@@ -24,6 +25,7 @@ target_link_libraries(AberrationCorrection
     PRIVATE
         dolphin_image
         dolphinbackend
+        aberration_backend
         aberration_cuda_backend
         project_options
 )
