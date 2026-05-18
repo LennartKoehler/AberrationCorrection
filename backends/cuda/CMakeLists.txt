@@ -26,7 +26,7 @@ add_subdirectory(cuda_kernels)
 target_link_libraries(aberration_cuda_backend
     PUBLIC
         cuda_backend
+        aberration_cuda_kernels
         dolphinbackend
         aberration_backend
-        aberration_cuda_kernels
 )
