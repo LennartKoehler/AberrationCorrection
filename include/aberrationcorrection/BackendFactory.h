@@ -1,0 +1,204 @@
+/* Copyright by Lennart Koehler
+
+Research Group Applied Systems Biology - Head: Prof. Dr. Marc Thilo Figge
+https://www.leibniz-hki.de/en/applied-systems-biology.html
+HKI-Center for Systems Biology of Infection
+Leibniz Institute for Natural Product Research and Infection Biology - Hans Knöll Institute (HKI)
+Adolf-Reichwein-Straße 23, 07745 Jena, Germany
+
+The project code is licensed under the MIT license.
+See the LICENSE file provided with the code for the full license.
+*/
+
+#pragma once
+
+#include <memory>
+#include <string>
+#include <map>
+#include <functional>
+#include <dlfcn.h>
+
+
+#include "cuda/CUDAAberrationBackend.h"
+#include "cpu/CPUAberrationBackend.h"
+#include <spdlog/spdlog.h>
+
+#define NOT_IMPLEMENTED(func_name) \
+    throw std::runtime_error(std::string(#func_name) + " not implemented in " + typeid(*this).name())
+
+
+static std::shared_ptr<spdlog::logger> getBackendLogger() {
+    auto logger = spdlog::get("backend");
+    return logger ? logger : spdlog::default_logger();
+}
+
+static std::function<std::function<void(const std::string&, LogLevel)>(const std::string&)> logWrapper = [](const std::string& backendName){
+
+    std::function<void(const std::string&, LogLevel)> logCallback_fn = [backendName](const std::string& backendMessage, LogLevel level){
+
+        std::string msg = backendName + ": " + backendMessage;
+        switch(level){
+        case LogLevel::INFO:
+            getBackendLogger()->info(msg);
+            break;
+        case LogLevel::DEBUG:
+            getBackendLogger()->debug(msg);
+            break;
+        case LogLevel::WARN:
+            getBackendLogger()->warn(msg);
+            break;
+        case LogLevel::ERROR:
+            getBackendLogger()->error(msg);
+            break;
+        default:
+            break;
+        }
+    };
+    return logCallback_fn;
+};
+
+template <typename T>
+inline constexpr bool always_false = false;
+template <typename T>
+[[noreturn]] T& unsupported_type() {
+    static_assert(always_false<T>, "Unsupported type for getBackend");
+}
+
+#define DEFAULT_BACKEND "cpu"
+
+
+struct BackendFactory {
+    static BackendFactory& getInstance() {
+        static BackendFactory instance;
+        return instance;
+    }
+
+    IBackendMemoryManager& getDefaultBackendMemoryManager(){
+        BackendConfig config{1, DEFAULT_BACKEND};
+        static IBackendMemoryManager& mgr = getBackend<IBackendMemoryManager>(config);
+        return mgr;
+    }
+
+
+    IBackendManager& getBackendManager(const std::string& backendName){
+        IBackendManager* manager = findBackendManager(backendName);
+        if (!manager) manager = loadBackendManager(backendName);
+        if (!manager){
+            getBackendLogger()->warn("Failed to get backend '{}' out of selection {}, using default instead", backendName, printRegisteredBackends());
+            return getBackendManager(DEFAULT_BACKEND);
+        }
+        assert(manager && "Couldnt even load default manager");
+        return *manager;
+
+    }
+
+    template <typename T>
+    T& getBackend(const BackendConfig& config) {
+        T& b= loadTypedBackend<T>(config);
+        return b;
+    }
+
+
+
+private:
+
+    BackendFactory(){registerStaticBackends();}
+    ~BackendFactory() = default;
+    BackendFactory(const BackendFactory&) = delete;
+    BackendFactory& operator=(const BackendFactory&) = delete;
+
+    void registerStaticBackends(){
+
+        addBackendManager(DEFAULT_BACKEND, std::move(std::make_unique<CPUAberrationBackendManager>()));
+
+#if ENABLE_CUDA
+        addBackendManager("cuda", std::move(std::make_unique<CUDAAberrationBackendManager>()));
+
+#endif
+    }
+
+    template <typename T>
+    T* loadSymbolFromLibrary(const std::string& backendName, const char* symbolName) {
+        void* handle = getHandle(backendName);
+        if (!handle) {
+            return nullptr;
+        }
+
+        using create_fn = T*();
+        auto create_symbol = reinterpret_cast<create_fn*>(dlsym(handle, symbolName));
+        if (!create_symbol) {
+            dlclose(handle);
+            return nullptr;
+        }
+
+        return create_symbol();
+    }
+    template <typename T>
+    T& getBackend(IBackendManager& manager, const BackendConfig& config) {
+        if constexpr (std::is_same_v<T, IBackend>) {
+            return manager.getBackend(config);
+        } else if constexpr (std::is_same_v<T, IBackendMemoryManager>) {
+            return manager.getBackendMemoryManager(config);
+        } else if constexpr (std::is_same_v<T, IComputeBackend>) {
+            return manager.getComputeBackend(config);
+        } else {
+            static_assert(always_false<T>, "Unsupported interface type");
+        }
+    }
+
+    std::string printRegisteredBackends(){
+        std::string s{"["};
+        for(auto const& [name, _] : loadedManagers){
+            s.append(name);
+            s.append(", ");
+        }
+        s.pop_back();
+        s.pop_back();
+        s.append("]");
+        return s;
+    }
+
+
+
+
+    template <typename T>
+    T& loadTypedBackend(const BackendConfig& config) {
+        const std::string& backendName = config.backendName;
+        IBackendManager& manager = getBackendManager(config.backendName);
+
+        return getBackend<T>(manager, config);
+
+    }
+
+    void addBackendManager(const std::string& backendName, std::unique_ptr<IBackendManager> manager){
+        manager->init(logWrapper(backendName));
+        loadedManagers[backendName] = std::move(manager);
+    }
+
+    IBackendManager* loadBackendManager(const std::string& backendName){
+        IBackendManager* result = nullptr;
+        const char* symbolName = "createBackendManager";
+        result = loadSymbolFromLibrary<IBackendManager>(backendName, symbolName);
+
+        if (!result){
+            getBackendLogger()->warn("Unable to load backend '{}'", backendName);
+            result = nullptr;
+        }
+        else addBackendManager(backendName, std::move(std::unique_ptr<IBackendManager>(result)));
+        return result;
+
+    }
+
+    IBackendManager* findBackendManager(const std::string& name){
+        auto it = loadedManagers.find(name);
+        if (it != loadedManagers.end()) return it->second.get();
+        else return nullptr;
+    }
+
+    static void* getHandle(const std::string& backendName) {
+        void* handle = dlopen(backendName.c_str(), RTLD_LAZY);
+        return handle;
+    }
+
+    std::map<std::string, std::unique_ptr<IBackendManager>> loadedManagers;
+};
