@@ -1,4 +1,3 @@
-#include "dolphin/backend/BackendFactory.h"
 #include "dolphin_image/Image3D.h"
 #include "dolphin_image/IO/TiffReader.h"
 #include "dolphin_image/IO/TiffWriter.h"
@@ -20,7 +19,6 @@ int main(int argc, char** argv){
         // default output file name
         output = input + "_copy.tif";
     }
-    BackendFactory& factory = BackendFactory::getInstance();
 
 
     int channel = 0;

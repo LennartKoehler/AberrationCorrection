@@ -63,4 +63,20 @@ namespace ABERR {
         return cudaSuccess;
     }
 
+    namespace TEST{
+
+
+        cudaError_t zernikePhaseTest(int Nx, int Ny, int Nz, complex_t* data, ZernikeCoefficients coeff, cudaStream_t stream) {
+            if (!data) {
+                return cudaErrorInvalidValue;
+            }
+
+            dim3 blocksPerGrid = computeBlocksPerGrid(Nx, Ny, Nz);
+            CUDA_CHECK_KERNEL(
+                (applyZernikePolynomialsGlobal<<<blocksPerGrid, GLOBAL_THREADS_PER_BLOCK, 0, stream>>>(Nx, Ny, Nz, data, coeff)),
+                stream);
+            return cudaSuccess;
+        }
+    }
+
 }

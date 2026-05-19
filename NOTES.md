@@ -12,6 +12,8 @@ Setps for aberration correction:
     - iterate through values for coefficients
     - apply polynomial to masked image (bead)
     - compare to ground truth
+        if possible then do this in the fourier space, then we dont need to inverseFFT for each test
+        e.g. compare the phase shifted image with and fourier transformed image of ideal bead?
     - repeat until best ground truth or some other stop criterion
 
 - save parameters in some descriptive database

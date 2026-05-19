@@ -1,12 +1,12 @@
 #pragma once
 #include "dolphinbackend/ComplexData.h"
-
-using ZernikeCoefficients = float[4];
+#include "aberration_backend/ZernikeCoefficients.h"
 
 
 class IAberrationBackend{
 public:
     virtual ~IAberrationBackend() = default;
-    virtual void computeAberration(const ComplexData& data) const = 0;
+    virtual void computeAberration(const ComplexData& data, ZernikeCoefficients coeff) const = 0;
+    virtual void zernikePhaseTestFunction(const ComplexData& output, ZernikeCoefficients coeff) const = 0;
 
 };

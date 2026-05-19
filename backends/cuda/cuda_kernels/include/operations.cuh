@@ -8,4 +8,11 @@ namespace ABERR {
 
     cudaError_t applyZernikeCorrection(int Nx, int Ny, int Nz, complex_t* data, ZernikeCoefficients coeff, cudaStream_t stream = 0);
 
+    namespace TEST{
+
+        cudaError_t zernikePhaseTest(int Nx, int Ny, int Nz, complex_t* data, ZernikeCoefficients coeff, cudaStream_t stream = 0);
+    }
+
 }
+
+

@@ -23,4 +23,5 @@ target_link_libraries(aberration_cuda_kernels
     PUBLIC
         CUDA::cudart_static
         dolphinbackend
+        aberration_backend
 )
