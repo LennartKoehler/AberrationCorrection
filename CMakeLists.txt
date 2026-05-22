@@ -25,7 +25,8 @@ add_library(aberrationcorrection STATIC
     src/main.cpp
     src/ImageConversion.cpp
     src/ThreadPool.cpp
-    src/ParameterSearch.cpp)
+    src/ParameterSearch.cpp
+    src/SphereDetector.cpp)
 
 
 

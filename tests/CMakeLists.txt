@@ -62,3 +62,16 @@ target_link_libraries(find_zernike_coeff_test
         aberrationcorrection
         project_options
 )
+
+add_executable(image_conversion_test image_conversion_test.cpp)
+
+target_link_libraries(image_conversion_test
+    PRIVATE
+        aberrationcorrection
+        dolphin_image
+        dolphinbackend
+        cpu_backend
+        cpu_aberration_backend
+        cuda_aberration_backend
+        project_options
+)
