@@ -75,3 +75,12 @@ target_link_libraries(image_conversion_test
         cuda_aberration_backend
         project_options
 )
+
+add_executable(sphere_detector_test sphere_detector_test.cpp)
+
+target_link_libraries(sphere_detector_test
+    PRIVATE
+        aberrationcorrection
+        dolphin_image
+        project_options
+)
