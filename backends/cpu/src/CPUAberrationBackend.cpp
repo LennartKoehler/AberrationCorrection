@@ -3,13 +3,6 @@
 #include <cmath>
 #include <fftw3.h>
 
-void CPUAberrationBackend::computeAberration(const ComplexData& image, ZernikeCoefficients coeff) const {
-    CuboidShape dataSize = image.getSize();
-    int Nx = dataSize.width;
-    int Ny = dataSize.height;
-    int Nz = dataSize.depth;
-    applyZernikeCorrection(Nx, Ny, Nz, image.getData(), coeff);
-}
 
 void CPUAberrationBackend::computeZernikePhase(real_t* correction, int x, int y, int Nx, int Ny, ZernikeCoefficients coeff) const {
 
@@ -17,6 +10,8 @@ void CPUAberrationBackend::computeZernikePhase(real_t* correction, int x, int y,
     // Map pixel coordinates to normalized coordinates
     // The center of the image maps to (0, 0), and the unit circle
     // circumscribes the image (pixels outside the disk get no phase).
+    // real_t rho_x = (real_t(2) * x - Nx + 1) / (Nx - 1);
+    // real_t rho_x = static_cast<real_t>(x - Nx + 1)/(Nx - 1);
     real_t rho_x = (real_t(2) * x - Nx + 1) / (Nx - 1);
     real_t rho_y = (real_t(2) * y - Ny + 1) / (Ny - 1);
     real_t rho_sq = rho_x * rho_x + rho_y * rho_y;
@@ -34,7 +29,21 @@ void CPUAberrationBackend::computeZernikePhase(real_t* correction, int x, int y,
     *correction = coeff.c[0] * Z0 + coeff.c[1] * Z1 + coeff.c[2] * Z2 + coeff.c[3] * Z3 + coeff.c[4] * Z12;
 }
 
-void CPUAberrationBackend::applyZernikeCorrection(int Nx, int Ny, int Nz, complex_t* data, const ZernikeCoefficients& coeff) const {
+
+void CPUAberrationBackend::addZernikePhase(ComplexData& image, ZernikeCoefficients coeff) const {
+    // assert(image.getSize() == image.getRealSize());// only works for full complex values
+    CuboidShape dataSize = image.getSize();
+    CuboidShape realSize = image.getRealSize();
+    addZernikePhase_(dataSize, realSize, image.getData(), coeff);
+}
+
+
+void CPUAberrationBackend::addZernikePhase_(CuboidShape dataSize, CuboidShape realSize, complex_t* data, const ZernikeCoefficients& coeff) const {
+    int Nx = dataSize.width;
+    int Ny = dataSize.height;
+    int Nz = dataSize.depth;
+    int realNx = realSize.width;
+    int realNy = realSize.height;
     for (int z = 0; z < Nz; ++z) {
         for (int y = 0; y < Ny; ++y) {
             for (int x = 0; x < Nx; ++x) {
@@ -42,7 +51,7 @@ void CPUAberrationBackend::applyZernikeCorrection(int Nx, int Ny, int Nz, comple
 
                 real_t phase = 0.0;
 
-                 computeZernikePhase(&phase, x, y, Nx, Ny, coeff);
+                computeZernikePhase(&phase, x, y, realNx, realNy, coeff);
 
                 real_t cosPhase = cos(phase);
                 real_t sinPhase = sin(phase);
@@ -56,12 +65,49 @@ void CPUAberrationBackend::applyZernikeCorrection(int Nx, int Ny, int Nz, comple
 }
 
 
-void CPUAberrationBackend::zernikePhaseTestFunction(const ComplexData& output, ZernikeCoefficients coeff) const {
 
-    CuboidShape dataSize = output.getSize();
+void CPUAberrationBackend::subtractZernikePhase(ComplexData& image, ZernikeCoefficients coeff) const {
+    CuboidShape dataSize = image.getSize();
+    CuboidShape realSize = image.getRealSize();
+    subtractZernikePhase_(dataSize, realSize, image.getData(), coeff);
+}
+
+
+void CPUAberrationBackend::subtractZernikePhase_(CuboidShape dataSize, CuboidShape realSize, complex_t* data, const ZernikeCoefficients& coeff) const {
     int Nx = dataSize.width;
     int Ny = dataSize.height;
     int Nz = dataSize.depth;
+    int realNx = realSize.width;
+    int realNy = realSize.height;
+    for (int z = 0; z < Nz; ++z) {
+        for (int y = 0; y < Ny; ++y) {
+            for (int x = 0; x < Nx; ++x) {
+                int index = z * (Nx * Ny) + y * Nx + x;
+
+                real_t phase = 0.0;
+
+                computeZernikePhase(&phase, x, y, realNx, realNy, coeff);
+
+                real_t cosPhase = cos(phase);
+                real_t sinPhase = sin(phase);
+                real_t re = data[index][0];
+                real_t im = data[index][1];
+                data[index][0] = re * cosPhase + im * sinPhase;
+                data[index][1] = -re * sinPhase + im * cosPhase;
+            }
+        }
+    }
+}
+
+
+void CPUAberrationBackend::zernikePhaseTestFunction(ComplexData& output, ZernikeCoefficients coeff) const {
+    CuboidShape dataSize = output.getSize();
+    CuboidShape realSize = output.getRealSize();
+    int Nx = dataSize.width;
+    int Ny = dataSize.height;
+    int Nz = dataSize.depth;
+    int realNx = realSize.width;
+    int realNy = realSize.height;
 
     complex_t* rawData = output.getData();
 
@@ -72,7 +118,7 @@ void CPUAberrationBackend::zernikePhaseTestFunction(const ComplexData& output, Z
 
                 real_t phase = 0.0;
 
-                 computeZernikePhase(&phase, x, y, Nx, Ny, coeff);
+                computeZernikePhase(&phase, x, y, realNx, realNy, coeff);
 
                 rawData[index][0] = phase;
                 rawData[index][1] = 0.0;

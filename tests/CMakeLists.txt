@@ -29,3 +29,36 @@ target_link_libraries(apply_zernike_phase
         aberrationcorrection
         project_options
 )
+
+add_executable(add_subtract_zernike add_subtract_zernike.cpp)
+
+target_link_libraries(add_subtract_zernike
+    PRIVATE
+        cuda_aberration_backend
+        cpu_aberration_backend
+        dolphin_image
+        aberrationcorrection
+        project_options
+)
+
+add_executable(real_vs_complex_zernike real_vs_complex_zernike.cpp)
+
+target_link_libraries(real_vs_complex_zernike
+    PRIVATE
+        cuda_aberration_backend
+        cpu_aberration_backend
+        dolphin_image
+        aberrationcorrection
+        project_options
+)
+
+add_executable(find_zernike_coeff_test find_zernike_coeff_test.cpp)
+
+target_link_libraries(find_zernike_coeff_test
+    PRIVATE
+        cuda_aberration_backend
+        cpu_aberration_backend
+        dolphin_image
+        aberrationcorrection
+        project_options
+)

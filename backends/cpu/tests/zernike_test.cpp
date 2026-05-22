@@ -28,7 +28,7 @@ static bool dataChanged(const complex_t* before, const complex_t* after, int vol
 static void testFn(IAberrationBackend& backend, ComplexData& data, ZernikeCoefficients coeff){
     std::cout << "Starting testFn" << std::endl;
     for (int i = 0; i < 100000; i++){
-        backend.computeAberration(data, coeff);
+        backend.subtractZernikePhase(data, coeff);
     }
     std::cout << "Finished testFn" << std::endl;
 }
@@ -80,7 +80,7 @@ int main() {
 
             memMgr.memCopy(before, data);
             ZernikeCoefficients coeff{{0.5f, 0.3f, -0.2f, 0.1f}};
-            cpuBackend.computeAberration(data, coeff);
+            cpuBackend.subtractZernikePhase(data, coeff);
 
             bool ok = dataChanged(before.getData(), data.getData(), volume);
             ++total; if (ok) ++passed;

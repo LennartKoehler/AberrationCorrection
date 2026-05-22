@@ -1,0 +1,256 @@
+{
+    "version": "0.2.0",
+    "configurations":[
+        {
+            "name": "Debug zernike cpu",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/backends/cpu/tests/zernike_cpu_test",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "console": "integratedTerminal",
+            "MIMode": "gdb",
+
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Enable break on all exceptions",
+                    "text": "catch throw",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "type": "cppdbg",
+            "name": "Debug zernike cuda",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/backends/cuda/tests/zernike_cuda_test",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "console": "integratedTerminal",
+            "MIMode": "gdb",
+
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Enable break on all exceptions",
+                    "text": "catch throw",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "type": "cppdbg",
+            "name": "Debug apply zernike phase (cuda)",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tests/apply_zernike_phase",
+            "args": [
+                "/home/lennart-k-hler/data/labeledImage/simpleMask.tif",
+                "/home/lennart-k-hler/data/dolphin_results/zernike_phase_bacteria.tif",
+                "cuda",
+                "0.0", "0.0", "0.0", "0.0", "0.1"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "console": "integratedTerminal",
+            "MIMode": "gdb",
+
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Enable break on all exceptions",
+                    "text": "catch throw",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "type": "cppdbg",
+            "name": "Debug apply zernike phase (cpu)",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tests/apply_zernike_phase",
+            "args": [
+                "/home/lennart-k-hler/data/labeledImage/simpleMask.tif",
+                "/home/lennart-k-hler/data/dolphin_results/zernike_phase_bacteria.tif",
+                "cpu",
+                "0.0", "0.0", "0.0", "0.0", "0.1"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "console": "integratedTerminal",
+            "MIMode": "gdb",
+
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Enable break on all exceptions",
+                    "text": "catch throw",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "type": "cppdbg",
+            "name": "Debug zernike phase plots (cuda)",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tests/zernike_phase_plots",
+            "args": [
+                "/home/lennart-k-hler/data/dolphin_results/zernike_phase_plots.tif",
+                "cuda",
+                "0.0", "0.0", "0.0", "0.0", "1.0"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "console": "integratedTerminal",
+            "MIMode": "gdb",
+
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Enable break on all exceptions",
+                    "text": "catch throw",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "type": "cppdbg",
+            "name": "Debug zernike phase plots (cpu)",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tests/zernike_phase_plots",
+            "args": [
+                "/home/lennart-k-hler/data/dolphin_results/zernike_phase_plots.tif",
+                "cpu",
+                "0.0", "0.0", "0.0", "0.0", "1.0"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "console": "integratedTerminal",
+            "MIMode": "gdb",
+
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Enable break on all exceptions",
+                    "text": "catch throw",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "type": "cppdbg",
+            "name": "Debug add subtract zernike",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tests/add_subtract_zernike",
+            "args": [
+                "cuda",
+                "0.0", "0.0", "0.0", "0.0", "1.0"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "console": "integratedTerminal",
+            "MIMode": "gdb",
+
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Enable break on all exceptions",
+                    "text": "catch throw",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "type": "cppdbg",
+            "name": "Debug find zernike coeff test",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tests/find_zernike_coeff_test",
+            "args": [
+                "cuda",
+                "0.1", "0.0", "0.2", "0.0", "0.8"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "console": "integratedTerminal",
+            "MIMode": "gdb",
+
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Enable break on all exceptions",
+                    "text": "catch throw",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "type": "cppdbg",
+            "name": "Debug real vs complex zernike test",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tests/real_vs_complex_zernike",
+            "args": [
+                "cpu",
+                "0.1", "0.0", "0.2", "0.0", "0.8"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "console": "integratedTerminal",
+            "MIMode": "gdb",
+
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Enable break on all exceptions",
+                    "text": "catch throw",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+
+    ]
+}

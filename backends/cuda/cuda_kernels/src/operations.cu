@@ -51,14 +51,26 @@ namespace ABERR {
         return cudaSuccess;
     }
 
-    cudaError_t applyZernikeCorrection(int Nx, int Ny, int Nz, complex_t* data, ZernikeCoefficients coeff, cudaStream_t stream) {
+    cudaError_t subtractZernikePhase(int dataNx, int dataNy, int dataNz, int realNx, int realNy, int realNz, complex_t* data, ZernikeCoefficients coeff, cudaStream_t stream) {
         if (!data) {
             return cudaErrorInvalidValue;
         }
 
-        dim3 blocksPerGrid = computeBlocksPerGrid(Nx, Ny, Nz);
+        dim3 blocksPerGrid = computeBlocksPerGrid(dataNx, dataNy, dataNz);
         CUDA_CHECK_KERNEL(
-            (applyZernikePolynomialsGlobal<<<blocksPerGrid, GLOBAL_THREADS_PER_BLOCK, 0, stream>>>(Nx, Ny, Nz, data, coeff)),
+            (subtractZernikePhaseGlobal<<<blocksPerGrid, GLOBAL_THREADS_PER_BLOCK, 0, stream>>>(dataNx, dataNy, dataNz, realNx, realNy, data, coeff)),
+            stream);
+        return cudaSuccess;
+    }
+
+    cudaError_t addZernikePhase(int dataNx, int dataNy, int dataNz, int realNx, int realNy, int realNz, complex_t* data, ZernikeCoefficients coeff, cudaStream_t stream) {
+        if (!data) {
+            return cudaErrorInvalidValue;
+        }
+
+        dim3 blocksPerGrid = computeBlocksPerGrid(dataNx, dataNy, dataNz);
+        CUDA_CHECK_KERNEL(
+            (addZernikePhaseGlobal<<<blocksPerGrid, GLOBAL_THREADS_PER_BLOCK, 0, stream>>>(dataNx, dataNy, dataNz, realNx, realNy, data, coeff)),
             stream);
         return cudaSuccess;
     }
@@ -66,14 +78,14 @@ namespace ABERR {
     namespace TEST{
 
 
-        cudaError_t zernikePhaseTest(int Nx, int Ny, int Nz, complex_t* data, ZernikeCoefficients coeff, cudaStream_t stream) {
+        cudaError_t zernikePhaseTest(int dataNx, int dataNy, int dataNz, int realNx, int realNy, int realNz, complex_t* data, ZernikeCoefficients coeff, cudaStream_t stream) {
             if (!data) {
                 return cudaErrorInvalidValue;
             }
 
-            dim3 blocksPerGrid = computeBlocksPerGrid(Nx, Ny, Nz);
+            dim3 blocksPerGrid = computeBlocksPerGrid(dataNx, dataNy, dataNz);
             CUDA_CHECK_KERNEL(
-                (applyZernikePolynomialsGlobal<<<blocksPerGrid, GLOBAL_THREADS_PER_BLOCK, 0, stream>>>(Nx, Ny, Nz, data, coeff)),
+                (zernikePhaseTestGlobal<<<blocksPerGrid, GLOBAL_THREADS_PER_BLOCK, 0, stream>>>(dataNx, dataNy, dataNz, realNx, realNy, data, coeff)),
                 stream);
             return cudaSuccess;
         }

@@ -38,14 +38,14 @@ static void runWithManager(IBackendManager& manager,
     CuboidShape shape = image.getShape();
     std::cout << "    Shape: " << shape.width << " x " << shape.height << " x " << shape.depth << std::endl;
 
-    ComplexData inputImage = ImageConversion::convertImageToComplexData(image);
-    ComplexData inputOnDevice = memMgr.copyDataToDevice(inputImage);
+    RealData inputImage = ImageConversion::convertImageToRealData(image);
+    RealData inputOnDevice = memMgr.copyDataToDevice(inputImage);
 
 
     std::cout << "[4] Forward FFT (R2C)..." << std::endl;
-    // DataView<complex_t> complexOnDevice = memMgr.reinterpret(inputOnDevice);
+    DataView<complex_t> complexOnDevice = memMgr.reinterpret(inputOnDevice);
     IComputeBackend& computeBackend = backend.mutableComputeManager();
-    computeBackend.forwardFFT(inputOnDevice, inputOnDevice);
+    computeBackend.forwardFFT(inputOnDevice, complexOnDevice);
     backend.sync();
 
     std::cout << "[5] Applying Zernike aberration correction..." << std::endl;
@@ -55,18 +55,18 @@ static void runWithManager(IBackendManager& manager,
               << " Z3=" << coeff.c[3]
               << " Z12=" << coeff.c[4] << std::endl;
     IAberrationBackend& aberrationBackend = getAberrationBackend(backend);
-    aberrationBackend.computeAberration(inputOnDevice, coeff);
+    aberrationBackend.subtractZernikePhase(complexOnDevice, coeff);
 
     backend.sync();
 
     std::cout << "[6] Inverse FFT (C2R)..." << std::endl;
-    // DataView<real_t> outputOnDevice = memMgr.reinterpret(complexOnDevice);
-    computeBackend.backwardFFT(inputOnDevice, inputOnDevice);
+    DataView<real_t> outputOnDevice = memMgr.reinterpret(complexOnDevice);
+    computeBackend.backwardFFT(complexOnDevice, outputOnDevice);
     backend.sync();
 
     std::cout << "[7] Copying result to host..." << std::endl;
-    ComplexData outputReal = memMgr.moveDataFromDevice(inputOnDevice, BackendFactory::getInstance().getDefaultBackendMemoryManager());
-    Image3D outputImage = ImageConversion::convertComplexDataToImage(outputReal);
+    RealData outputReal = memMgr.moveDataFromDevice(inputOnDevice, BackendFactory::getInstance().getDefaultBackendMemoryManager());
+    Image3D outputImage = ImageConversion::convertRealDataToImage(outputReal);
 
     if (!TiffWriter::writeToFile(outputFile, outputImage)) {
         throw std::runtime_error("Failed to write output: " + outputFile);

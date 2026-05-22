@@ -23,7 +23,9 @@ add_subdirectory(backends/cuda)
 
 add_library(aberrationcorrection STATIC
     src/main.cpp
-    src/ImageConversion.cpp)
+    src/ImageConversion.cpp
+    src/ThreadPool.cpp
+    src/ParameterSearch.cpp)
 
 
 

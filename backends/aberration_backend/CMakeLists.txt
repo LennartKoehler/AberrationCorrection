@@ -5,9 +5,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 
-add_library(aberration_backend INTERFACE)
+add_library(aberration_backend STATIC
+    src/ZernikeCoefficients.cpp)
 
-target_include_directories(aberration_backend INTERFACE
+target_include_directories(aberration_backend PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 

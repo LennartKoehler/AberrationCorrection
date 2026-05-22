@@ -5,13 +5,14 @@
 #include "cuda_backend/CUDABackendManager.h"
 #include "aberration_backend/IAberrationBackend.h"
 
-class CUDAAberrationBackend : public CUDAComputeBackend, public IAberrationBackend{
+class CUDAAberrationBackend : public CUDAComputeBackend, public virtual IAberrationBackend{
 public:
     CUDAAberrationBackend(CUDABackendConfig config) : CUDAComputeBackend(config){}
     ~CUDAAberrationBackend() override = default;
 
-    void computeAberration(const ComplexData& data, ZernikeCoefficients coeff) const override;
-    void zernikePhaseTestFunction(const ComplexData& output, ZernikeCoefficients coeff) const override;
+    void subtractZernikePhase(ComplexData& data, ZernikeCoefficients coeff) const override;
+    void addZernikePhase(ComplexData& data, ZernikeCoefficients coeff) const override;
+    void zernikePhaseTestFunction(ComplexData& output, ZernikeCoefficients coeff) const override;
 };
 
 class CUDAAberrationBackendManager : public CUDABackendManager {

@@ -1,1 +1,5 @@
-image conversion for zernike test, it needs both itk and backend complexdata, so thats why its in neither of these libraries, perhaps just copy the code to the aberrationcorrection
+
+
+fuzed kernels in dolphin
+
+make the zernike polynomials work with the compact fftw complex format, -> symmetry problem, cant work, need full compelx data ass symmetry is broken by phase shift

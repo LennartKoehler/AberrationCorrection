@@ -30,7 +30,7 @@ static bool dataChanged(const complex_t* before, const complex_t* after, int vol
 
 static void testFn(IAberrationBackend& backend, ComplexData& data, ZernikeCoefficients coeff){
     std::cout << "Starting testFn" << std::endl;
-    backend.computeAberration(data, coeff);
+    backend.subtractZernikePhase(data, coeff);
     std::cout << "Finished testFn" << std::endl;
 }
 
@@ -85,7 +85,7 @@ int main() {
 
             ComplexData deviceData = cudaMemMgr.copyDataToDevice(before);
             ZernikeCoefficients coeff{{0.5f, 0.3f, -0.2f, 0.1f}};
-            aberrationBackend.computeAberration(deviceData, coeff);
+            aberrationBackend.subtractZernikePhase(deviceData, coeff);
 
             ComplexData result = cudaMemMgr.moveDataFromDevice(deviceData, cpuMemMgr);
             bool ok = dataChanged(before.getData(), result.getData(), volume);

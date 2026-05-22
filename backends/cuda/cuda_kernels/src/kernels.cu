@@ -23,13 +23,13 @@ void applyPhaseCorrectionGlobal(int Nx, int Ny, int Nz, complex_t* data, const r
 
 
 __device__
-void computeZernikePhase(real_t* correction, int x, int y, int Nx, int Ny, ZernikeCoefficients coeff){
+void computeZernikePhase(real_t* correction, int x, int y, int rNx, int rNy, ZernikeCoefficients coeff){
 
     // Map pixel coordinates to normalized coordinates
     // The center of the image maps to (0, 0), and the unit circle
     // circumscribes the image (pixels outside the disk get no phase).
-    real_t rho_x = (real_t(2) * x - Nx + 1) / (Nx - 1);
-    real_t rho_y = (real_t(2) * y - Ny + 1) / (Ny - 1);
+    real_t rho_x = (real_t(2) * x - rNx + 1) / (rNx - 1);
+    real_t rho_y = (real_t(2) * y - rNy + 1) / (rNy - 1);
     real_t rho_sq = rho_x * rho_x + rho_y * rho_y;
 
     //TODO only inside unit disk?
@@ -48,17 +48,17 @@ void computeZernikePhase(real_t* correction, int x, int y, int Nx, int Ny, Zerni
 
 
 __global__
-void applyZernikePolynomialsGlobal(int Nx, int Ny, int Nz, complex_t* image, ZernikeCoefficients coeff) {
+void subtractZernikePhaseGlobal(int dNx, int dNy, int dNz, int rNx, int rNy, complex_t* image, ZernikeCoefficients coeff) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
     int z = blockIdx.z * blockDim.z + threadIdx.z;
 
-    if (x < Nx && y < Ny && z < Nz) {
-        int index = z * (Nx * Ny) + y * Nx + x;
+    if (x < dNx && y < dNy && z < dNz) {
+        int index = z * (dNx * dNy) + y * dNx + x;
 
         // Compute the Zernike aberration phase δφ at this pixel
         real_t deltaPhi = 0;
-        computeZernikePhase(&deltaPhi, x, y, Nx, Ny, coeff);
+        computeZernikePhase(&deltaPhi, x, y, rNx, rNy, coeff);
 
         // Apply correction by multiplying with e^{-i·δφ}:
         //   (re + i·im) · (cos(δφ) - i·sin(δφ))
@@ -77,17 +77,46 @@ void applyZernikePolynomialsGlobal(int Nx, int Ny, int Nz, complex_t* image, Zer
 }
 
 __global__
-void zernikePhaseTestGlobal(int Nx, int Ny, int Nz, complex_t* image, ZernikeCoefficients coeff) {
+void addZernikePhaseGlobal(int dNx, int dNy, int dNz, int rNx, int rNy, complex_t* image, ZernikeCoefficients coeff) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
     int z = blockIdx.z * blockDim.z + threadIdx.z;
 
-    if (x < Nx && y < Ny && z < Nz) {
-        int index = z * (Nx * Ny) + y * Nx + x;
+    if (x < dNx && y < dNy && z < dNz) {
+        int index = z * (dNx * dNy) + y * dNx + x;
 
         // Compute the Zernike aberration phase δφ at this pixel
         real_t deltaPhi = 0;
-        computeZernikePhase(&deltaPhi, x, y, Nx, Ny, coeff);
+        computeZernikePhase(&deltaPhi, x, y, rNx, rNy, coeff);
+
+        // Apply aberration by multiplying with e^{+i·δφ}:
+        //   (re + i·im) · (cos(δφ) + i·sin(δφ))
+        //   = (re·cos(δφ) - im·sin(δφ)) + i·(im·cos(δφ) + re·sin(δφ))
+        // This adds the aberration phase without extracting atan2,
+        // which is more numerically stable and avoids branch/roundtrip errors.
+        real_t cosP = cos(deltaPhi);
+        real_t sinP = sin(deltaPhi);
+
+        real_t re = image[index][0];
+        real_t im = image[index][1];
+
+        image[index][0] = re * cosP - im * sinP;
+        image[index][1] = im * cosP + re * sinP;
+    }
+}
+
+__global__
+void zernikePhaseTestGlobal(int dNx, int dNy, int dNz, int rNx, int rNy, complex_t* image, ZernikeCoefficients coeff) {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+    int z = blockIdx.z * blockDim.z + threadIdx.z;
+
+    if (x < dNx && y < dNy && z < dNz) {
+        int index = z * (dNx * dNy) + y * dNx + x;
+
+        // Compute the Zernike aberration phase δφ at this pixel
+        real_t deltaPhi = 0;
+        computeZernikePhase(&deltaPhi, x, y, rNx, rNy, coeff);
 
         image[index][0] = deltaPhi;
         image[index][1] = 0.0;

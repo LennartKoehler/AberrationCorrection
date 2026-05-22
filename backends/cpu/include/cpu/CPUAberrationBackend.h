@@ -6,20 +6,22 @@
 #include "aberration_backend/IAberrationBackend.h"
 
 
-class CPUAberrationBackend : public CPUComputeBackend, public IAberrationBackend {
+class CPUAberrationBackend : public IAberrationBackend ,public CPUComputeBackend{
 public:
 
     CPUAberrationBackend(CPUBackendConfig config, FFTWManager& manager) : CPUComputeBackend(config, manager){}
     ~CPUAberrationBackend() override = default;
 
-    void computeAberration(const ComplexData& data, ZernikeCoefficients coeff) const override;
+    void subtractZernikePhase(ComplexData& data, ZernikeCoefficients coeff) const override;
+    void addZernikePhase(ComplexData& data, ZernikeCoefficients coeff) const override;
 
-    void applyZernikeCorrection(int Nx, int Ny, int Nz, complex_t* data, const ZernikeCoefficients& coeff) const;
-    void zernikePhaseTestFunction(const ComplexData& output, ZernikeCoefficients coeff) const override;
+    void zernikePhaseTestFunction(ComplexData& output, ZernikeCoefficients coeff) const override;
 
 private:
 
     void computeZernikePhase(real_t* correction, int x, int y, int Nx, int Ny, ZernikeCoefficients coeff) const ;
+    void subtractZernikePhase_(CuboidShape dataSize, CuboidShape realSize, complex_t* data, const ZernikeCoefficients& coeff) const;
+    void addZernikePhase_(CuboidShape dataSize, CuboidShape realSize, complex_t* data, const ZernikeCoefficients& coeff) const;
 
 };
 
